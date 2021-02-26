@@ -32,7 +32,7 @@ def print_help():
 @client.event
 async def on_message(message):
     # add admin id if needed 
-    # only me and Ransom ofc :couplehug:
+    # only trieumfer and Ransom 
     admin = {650774885316165662, 319618402903916544}
     # TODO : change role ID
     roles_list = {807016594352898098, 807286699101126686}
@@ -229,5 +229,5 @@ async def on_message(message):
             write_table(table)
         await message.channel.send(res)
         return
-        
+
 client.run(os.environ.get('LEADERBOARD_BOT_TOKEN'))
