@@ -229,4 +229,5 @@ async def on_message(message):
             write_table(table)
         await message.channel.send(res)
         return
+        
 client.run(os.environ.get('LEADERBOARD_BOT_TOKEN'))
