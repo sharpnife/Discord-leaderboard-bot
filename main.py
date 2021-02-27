@@ -322,7 +322,7 @@ async def on_message(message):
         res = "```\n"
         for f in files:
             if f.endswith('.json'):
-                res += f + "\n"
+                res += f[:-5] + "\n"
         res += "```"
 
         await message.channel.send(res)
