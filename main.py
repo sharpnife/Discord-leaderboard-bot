@@ -27,7 +27,22 @@ def write_table(json_file, json_data):
         json.dump(json_data, f, ensure_ascii=False, indent=4)
 
 def print_help():
-    return """```\n$help - shows this\n\n$show - shows the leaderboard\n\n$top [positive_integer : x] - shows top 'x' leading members\ne.g: $top 3 - shows top 3\n\n$update [member_username_with_discriminator] [points_to_be_added] - adds the given points to the member\ne.g: $update trieumfer#5579 10\n\n$refresh - refreshes the leaderboard\n\n$list - lists the members with all ping and puzzle crackers roles\n\n$dump - dumps JSON data```"""
+    return """```\n$help - shows this\n\n$show - shows the leaderboard\n\n$top [positive_integer : x] - shows top 'x' leading members\ne.g: $top 3 - shows top 3\n\n$update [leaderboard_name] [member_username_with_discriminator] [points_to_be_added] - adds the given points to the member\ne.g: $update [leaderboard_name] trieumfer#5579 10\n\n$refresh - refreshes the leaderboard\n\n$list - lists the members with all ping and puzzle crackers roles\n\n$dump - dumps JSON data\n\n$create [leaderboard_name]: creates new leaderboard\n\n$show [leaderboard_name]: shows the leaderboard_name\n\n$delete [leaderboard_name]: deletes the leaderboard_name\n\n$ls: lists the set of leaderboards\n\nNote: If leaderboard_name is not given the main leaderboard gets modified by default.```"""
+
+def is_json(filename):
+    if filename[-5:] != ".json":
+        return False
+    return True
+
+def is_exists_json(filename):
+    files = [f for f in os.listdir('.') if os.path.isfile(f)]
+    for f in files:
+        if f == filename:
+            return True
+    return False
+
+# WARNING: $remove and $delete are dangerous functions give permissions rightly
+# the main leaderboard is table.json
 
 @client.event
 async def on_message(message):
@@ -49,7 +64,10 @@ async def on_message(message):
                     for role in member.roles: 
                         # TODO: change role id
                         if(role.id in roles_list):
-                            res += member.name + "\n"
+                            if member.nick != None:
+                                res += member.nick + "\n"
+                            else:
+                                res += member.name + "\n"
         
         await message.channel.send(res)
         return
@@ -58,15 +76,24 @@ async def on_message(message):
     if message.content.startswith('$update'):
         lst = message.content.rsplit(' ')
         res = ""
-        if len(lst) != 3 or lst[0] != "$update" or RepresentsInt(lst[2]) == False:
+        print(len(lst))
+        if (len(lst) != 3 and len(lst) != 4) or lst[0] != "$update" or RepresentsInt(lst[len(lst) - 1]) == False:
             res = print_help()
         else: 
             if message.author.id not in admin:
                 await message.channel.send("Trying to cheat, uh? :smirk:")
                 return
-            lst = message.content.rsplit(' ')
             name = ""
-            for i in range(1, len(lst) - 1):
+            begin = 1
+            filename = "table.json"
+            if len(lst) == 4:
+                if not is_exists_json(str(lst[1] + ".json")):
+                    await message.channel.send("File doesn't exist!")
+                    return 
+                begin = 2
+                filename = lst[1] + ".json"
+
+            for i in range(begin, len(lst) - 1):
                 name += lst[i]
                 if(i != len(lst) - 2):
                     name += ' '
@@ -85,14 +112,14 @@ async def on_message(message):
                 await message.channel.send("Member not in server")
                 return
 
-            table = get_table("table.json")
+            table = get_table(filename)
 
             if member_id not in table :
                 table[member_id] = 0
         
             table[member_id] = table[member_id] + int(points)
 
-            write_table("table.json", table)
+            write_table(filename, table)
             res = "Successfully updated! :sunglasses:"
 
         await message.channel.send(res)
@@ -101,10 +128,16 @@ async def on_message(message):
     if message.content.startswith('$show'):
         lst = message.content.rsplit(' ')
         res = ""
-        if len(lst) != 1 or lst[0] != "$show":
+        if (len(lst) != 1 and len(lst) != 2) or lst[0] != "$show":
             res = print_help()
         else: 
-            table = get_table("table.json")
+            filename = "table.json"
+            if len(lst) == 2:
+                if not is_exists_json(str(lst[1] + ".json")):
+                    await message.channel.send("File doesn't exist!")
+                    return 
+                filename = lst[1] + ".json"
+            table = get_table(filename)
             # sort table
             table = sorted(table.items(), key=lambda item: item[1], reverse=True)
             table = dict(table)
@@ -116,7 +149,10 @@ async def on_message(message):
                 for guild in client.guilds:
                     for member in guild.members:
                         if(str(member.id) == member_id):
-                            name = member.name
+                            if member.nick != None:
+                                name = member.nick
+                            else:
+                                name = member.name
                 res += str(counter) + ". " + name + " :" + str(table[member_id]) + "\n"
                 counter += 1
             res += "```"
@@ -151,29 +187,43 @@ async def on_message(message):
     if message.content.startswith('$dump'):
         lst = message.content.rsplit(' ')
         res = ""
-        if len(lst) != 1 or lst[0] != "$dump":
+        if (len(lst) != 2 and len(lst) != 1) or lst[0] != "$dump":
             res = print_help()
-            if message.author.id != 650774885316165662:
-                res = "Dev/Admin only!"
         else:
-            table = get_table("table.json")
+            if message.author.id not in admin:
+                await message.channel.send("Dev/Admin only!")
+                return
+            filename = "table.json"
+            if len(lst) == 2:
+                if not is_exists_json(str(lst[1] + ".json")):
+                    await message.channel.send("File doesn't exist!")
+                    return 
+                filename = lst[1] + ".json"
+            
+            table = get_table(filename)
             res = table
         
         await message.channel.send(res)
         return    
     
     if message.content.startswith('$top'):
-        table = get_table("table.json")
-
         lst = message.content.rsplit(' ')
         res = ""
-        if len(lst) != 2:
+        if len(lst) != 2 and len(lst) != 3:
             res = "Invalid number of arguments!"
         elif lst[0] != "$top":
             res = print_help()
         else:
-            if RepresentsInt(lst[1]): 
-                lim = int(lst[1])
+            filename = "table.json"
+            if len(lst) == 3:
+                if not is_exists_json(str(lst[1] + ".json")):
+                    await message.channel.send("File doesn't exist!")
+                    return 
+                filename = lst[1] + ".json"
+            
+            table = get_table(filename)
+            if RepresentsInt(lst[len(lst) - 1]): 
+                lim = int(lst[len(lst) - 1])
                 if lim > 0:
                     lim = min(lim, len(table))
 
@@ -189,13 +239,16 @@ async def on_message(message):
                         for guild in client.guilds:
                             for member in guild.members:
                                 if(str(member.id) == member_id):
-                                    name = member.name
+                                    if member.nick != None:
+                                        name = member.nick
+                                    else:
+                                        name = member.name
 
                         res += str(counter) + ". " + name + " :" + str(table[member_id]) + "\n"
                         counter += 1
                     res += "```"
                 else: 
-                    res = "Invalid argument! Enter a positive number"
+                    res = "Invalid argument! Enter a positive integer"
             else:
                 res = print_help()
         
@@ -229,5 +282,49 @@ async def on_message(message):
             write_table("table.json", table)
         await message.channel.send(res)
         return
+
+
+    # creation and deletion of json files aka tables
+    if message.content.startswith('$create'):
+        if message.author.id not in admin :
+            res = "Dev/Admin only!"
+        else:
+            # $create [table_name]
+            lst = message.content.rsplit(' ')
+            if len(lst) != 2 or lst[0] != "$create":
+                res = "Invalid format!"
+            else:
+                if not os.path.isfile(lst[1] + ".json"):
+                    write_table(lst[1] + ".json", {})
+                res = lst[1] + ".json created!" 
+            
+        await message.channel.send(res)
+
+    if message.content.startswith('$delete'):
+        if message.author.id not in admin :
+            res = "Dev/Admin only!"
+        else:
+            # $remove [table_name]
+            lst = message.content.rsplit(' ')
+            if len(lst) != 2 or lst[0] != "$delete":
+                res = "Invalid format!"
+            else:
+                if not os.path.isfile(lst[1] + ".json"):
+                    res = "File doesn't exist!"
+                else:
+                    os.remove(lst[1] + ".json")
+                res = lst[1] + ".json removed!" 
+            
+        await message.channel.send(res)
+
+    if message.content.startswith('$ls'):
+        files = [f for f in os.listdir('.') if os.path.isfile(f)]
+        res = "```\n"
+        for f in files:
+            if f.endswith('.json'):
+                res += f + "\n"
+        res += "```"
+
+        await message.channel.send(res)
 
 client.run(os.environ.get('LEADERBOARD_BOT_TOKEN'))
