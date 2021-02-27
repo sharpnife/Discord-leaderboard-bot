@@ -143,7 +143,7 @@ async def on_message(message):
             table = dict(table)
 
             counter = 1
-            res = "```"
+            res = "```\n"
             for member_id in table :
                 name = ""
                 for guild in client.guilds:
@@ -231,7 +231,7 @@ async def on_message(message):
                     table = dict(table)
 
                     counter = 1
-                    res = "```"
+                    res = "```\n"
                     for member_id in table :
                         if counter > lim:
                             break
