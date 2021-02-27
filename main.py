@@ -16,15 +16,15 @@ def RepresentsInt(s):
     except ValueError:
         return False
 
-def get_table():
-    data_file = open("table.json", "r", encoding="utf-8")
+def get_table(json_file):
+    data_file = open(json_file, "r", encoding="utf-8")
     table = json.load(data_file)
     data_file.close()
     return table
 
-def write_table(table):
-    with open("table.json", "w") as f:
-        json.dump(table, f, ensure_ascii=False, indent=4)
+def write_table(json_file, json_data):
+    with open(json_file, "w") as f:
+        json.dump(json_data, f, ensure_ascii=False, indent=4)
 
 def print_help():
     return """```\n$help - shows this\n\n$show - shows the leaderboard\n\n$top [positive_integer : x] - shows top 'x' leading members\ne.g: $top 3 - shows top 3\n\n$update [member_username_with_discriminator] [points_to_be_added] - adds the given points to the member\ne.g: $update trieumfer#5579 10\n\n$refresh - refreshes the leaderboard\n\n$list - lists the members with all ping and puzzle crackers roles\n\n$dump - dumps JSON data```"""
@@ -85,14 +85,14 @@ async def on_message(message):
                 await message.channel.send("Member not in server")
                 return
 
-            table = get_table()
+            table = get_table("table.json")
 
             if member_id not in table :
                 table[member_id] = 0
         
             table[member_id] = table[member_id] + int(points)
 
-            write_table(table)
+            write_table("table.json", table)
             res = "Successfully updated! :sunglasses:"
 
         await message.channel.send(res)
@@ -104,7 +104,7 @@ async def on_message(message):
         if len(lst) != 1 or lst[0] != "$show":
             res = print_help()
         else: 
-            table = get_table()
+            table = get_table("table.json")
             # sort table
             table = sorted(table.items(), key=lambda item: item[1], reverse=True)
             table = dict(table)
@@ -130,7 +130,7 @@ async def on_message(message):
         if len(lst) != 1 or lst[0] != "$refresh":
             res = print_help()
         else: 
-            table = get_table()
+            table = get_table("table.json")
             for guild in client.guilds:
                 for member in guild.members:
                     for role in member.roles: 
@@ -138,7 +138,7 @@ async def on_message(message):
                             if str(member.id) not in table:
                                 table[member.id] = 0
         
-            write_table(table)
+            write_table("table.json", table)
             res = "Refreshed!"
 
         await message.channel.send(res)
@@ -156,14 +156,14 @@ async def on_message(message):
             if message.author.id != 650774885316165662:
                 res = "Dev/Admin only!"
         else:
-            table = get_table()
+            table = get_table("table.json")
             res = table
         
         await message.channel.send(res)
         return    
     
     if message.content.startswith('$top'):
-        table = get_table()
+        table = get_table("table.json")
 
         lst = message.content.rsplit(' ')
         res = ""
@@ -222,11 +222,11 @@ async def on_message(message):
             if (ok == 0): 
                 await message.channel.send("Member not in server")
                 return
-            table = get_table()
+            table = get_table("table.json")
             del table[member_id]
             res = "Successfully deleted!"
 
-            write_table(table)
+            write_table("table.json", table)
         await message.channel.send(res)
         return
 
