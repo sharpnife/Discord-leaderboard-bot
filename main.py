@@ -372,7 +372,13 @@ async def on_message(message):
 
                 if str(player1 + "+" + player2) in table:
                     table[str(player1 + "+" + player2)] = winner
+
+                    main_table = get_table(lst[1] + ".json")
+                    main_table[winner] = main_table[winner] + 1
+                    write_table(lst[1] + ".json", main_table)
+
                     res = "Successfully updated! :sunglasses:"
+
                 elif str(player2 + "+" + player1) in table:
                     table[str(player2 + "+" + player1)] = winner
                     res = "Successfully updated! :sunglasses:"
