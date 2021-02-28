@@ -330,7 +330,7 @@ async def on_message(message):
             # {"member_id1 + member_id2": None}
             for i in range(0, len(ids)):
                 for j in range(i + 1, len(ids)):
-                    match = ids[0] + "+" + ids[1]
+                    match = ids[i] + "+" + ids[j]
                     if match not in table:
                         table[match] = None
             
