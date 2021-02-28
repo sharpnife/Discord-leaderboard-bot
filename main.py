@@ -341,9 +341,9 @@ async def on_message(message):
                 player = match.rsplit('+')
                 res += get_member_name(player[0]) + " vs " + get_member_name(player[1]) + " : "
                 if table[match] != None:
-                    res += get_member_name(table[match])
-                res += "```\n"
-            
+                    res += get_member_name(table[match]) 
+                res += "\n"
+            res += "```\n"
         await message.channel.send(res)
     
     if message.content.startswith('$won'):
