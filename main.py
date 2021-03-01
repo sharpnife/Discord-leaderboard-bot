@@ -183,8 +183,10 @@ async def on_message(message):
                     return 
                 filename = lst[1] + ".json"
             
-            table = get_table(filename)
-            res = table
+            data = ""
+            with open(filename, 'r') as f: 
+                data = f.read()
+            res = data
         
         await message.channel.send(res)
         return    
