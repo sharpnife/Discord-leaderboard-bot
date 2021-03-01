@@ -383,9 +383,6 @@ async def on_message(message):
                 
                 if flag == 1:
                     write_table(filename, table)
-                    main_table = get_table(lst[1] + ".json")
-                    main_table[winner] = main_table[winner] + 1
-                    write_table(lst[1] + ".json", main_table)
                     res = "Successfully updated! :sunglasses:\n" + get_member_name(player1) + " vs " + get_member_name(player2) + " : " + get_member_name(winner) + " (winner)!"
 
         await message.channel.send(res)
