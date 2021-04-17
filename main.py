@@ -136,7 +136,7 @@ async def on_message(message):
             for member_id in table :
                 member_name = get_member_name(member_id)
 
-                res += str(counter) + ". " + member_name + " :" + str(table[member_id]) + "\n"
+                res += str(counter) + ". " + str(member_name) + " :" + str(table[member_id]) + "\n"
                 counter += 1
             res += "```"
         
@@ -150,12 +150,19 @@ async def on_message(message):
             res = "Invalid command! Use $help to check out the commands"
         else: 
             table = get_table("table.json")
+
+            temp = {}
             for guild in client.guilds:
                 for member in guild.members:
+                    temp[str(member.id)] = 1
                     for role in member.roles: 
                         if(role.id in roles_list):
                             if str(member.id) not in table:
-                                table[member.id] = 0
+                                table[str(member.id)] = 0
+
+            for key in list(table.keys()):
+                if key not in temp:
+                  del table[key]
         
             write_table("table.json", table)
             res = "Refreshed!"
